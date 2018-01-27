@@ -1,18 +1,20 @@
 (() => {
-    // レンダラーを作成
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // シーンを作成
     const scene = new THREE.Scene ();
 
-    // カメラを作成
-    const camera = new THREE.PerspectiveCamera (45, window.innerWidth / window.innerHeight, 0.1, 10000);
-    camera.position.set (0, 0, 5);
+    const camera = new THREE.PerspectiveCamera (100, window.innerWidth / window.innerHeight, 0.1, 10000);
+    camera.position.set (0, 0, 0);
 
     // カメラコントローラーを作成
-    const controls = new THREE.OrbitControls (camera);
+    //const controls = new THREE.OrbitControls (camera);
+
+    const renderer = new THREE.WebGLRenderer ();
+    renderer.setSize (window.innerWidth, window.innerHeight);
+
+    document.body.appendChild (renderer.domElement);
+
+    // Controls
+    const controls = new THREE.VRControls (camera);
+    controls.standing = true;
 
     // 平行光源を作成
     const directionalLight = new THREE.DirectionalLight (0xFFFFFF);
@@ -20,53 +22,48 @@
     scene.add (directionalLight);
 
     // 環境光を追加
-    const ambientLight = new THREE.AmbientLight (0xFFFFFF);
+    const ambientLight = new THREE.AmbientLight (0x888888);
     scene.add (ambientLight);
 
-    /*
-    // VR Controls
-    const controls = new THREE.VRControls(camera);
-    controls.standing = true;
+    // Effects
+    const effect = new THREE.VREffect (renderer);
+    effect.setSize (window.innerWidth, window.innerHeight);
 
-    // VR Effects
-    const effect = new THREE.VREffect(renderer);
-    effect.setSize(window.innerWidth, window.innerHeight);
+    const manager = new WebVRManager (renderer, effect);
 
-    // VR Manger
-    const manager = new WebVRManager(renderer, effect);
+    window.addEventListener ('resize', onResize, true);
+    window.addEventListener ('vrdisplaypresentchange', onResize, true);
 
-    // VR Event
-    window.addEventListener('resize', onResize, true);
-    window.addEventListener('vrdisplaypresentchange', onResize, true);
-
-    function onResize(e) {
-        effect.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-    }
-    */
-
-    /***
-     * コード
-     ***/
-
-        // 3DS形式のモデルデータを読み込む
-    const loader = new THREE.TDSLoader ();
-
-    // テクスチャーのパスを指定
-    // loader.setPath('model/bmw_x5/');
+    // 3DS形式のモデルデータを読み込む
+    const loader = new THREE.ColladaLoader ();
 
     // 3dsファイルのパスを指定
-    loader.load ('model/bmw_x5/BMW X5 4.3ds', (object) => {
+    loader.load ('model/car4/ShelbyWD.dae', (collada) => {
         // 読み込み後に3D空間に追加
-        scene.add (object);
+        const model = collada.scene;
+        scene.add (model);
+
+        model.position.set (-1, 0.5, -3);
+        model.scale.set (0.9, 0.9, 0.9);
     });
 
-    tick ();
+    // renderer
+    // renderer.render(scene, camera);
 
-    function tick () {
-        renderer.render (scene, camera); // レンダリング
+    function render () {
+        requestAnimationFrame (render);
 
-        requestAnimationFrame (tick);
+        controls.update ();
+
+        //renderer.render(scene, camera);
+        manager.render (scene, camera);
     }
-})();
+
+    render ();
+
+    function onResize (e) {
+        effect.setSize (window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix ();
+    }
+}) ();
