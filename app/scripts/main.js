@@ -36,16 +36,27 @@
      * コード
      ***/
 
-        // 箱を作成
-    const geometry = new THREE.BoxGeometry (400, 400, 400);
-    const material = new THREE.MeshNormalMaterial ();
-    const box = new THREE.Mesh (geometry, material);
-    scene.add (box);
+        // 球体を作成
+    const geometry = new THREE.SphereGeometry (300, 30, 30);
+    const material = new THREE.MeshStandardMaterial ({color: 0xFF0000});
+
+    // メッシュを作成
+    const mesh = new THREE.Mesh (geometry, material);
+
+    // 3D空間にメッシュを追加
+    scene.add (mesh);
+
+    // 平行光源
+    const directionalLight = new THREE.DirectionalLight (0xFFFFFF);
+    directionalLight.position.set (1, 1, 1);
+
+    // シーンに追加
+    scene.add (directionalLight);
 
     tick ();
 
     function tick () {
-        box.rotation.y += 0.01;
+        mesh.rotation.y += 0.01;
         renderer.render (scene, camera); // レンダリング
 
         requestAnimationFrame (tick);
